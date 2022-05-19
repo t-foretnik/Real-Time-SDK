@@ -1,0 +1,74 @@
+apply plugin: 'maven'
+
+group = "com.refinitiv.eta"
+archivesBaseName = "testCase"
+version "$SpecificationVersion"
+
+eclipse {
+    project {
+        name = 'RTSDK-Eta-TestCase'
+    }
+}
+
+configurations {
+    all {
+        // we want to use more recent junit version
+        exclude group: 'junit', module: 'junit'
+        // we do not need mockito
+        exclude group: 'org.mockito', module: 'mockito-all'
+        // we want to use logback
+        exclude group: 'org.slf4j', module: 'slf4j-jdk14'
+    }
+}
+
+test {
+     filter {
+        //exclude all tests because they will need configuration before they run properly
+        excludeTestsMatching "com.oraise.*"
+     }
+ }
+
+dependencies {
+    
+    testRuntime 'ch.qos.logback:logback-classic:1.2.11'
+    testCompile 'org.junit.jupiter:junit-jupiter:5.8.2'
+
+    compile project(':Ema:Core')
+}
+
+ext.sharedManifest = manifest {
+        attributes( 'Sealed': 'true',
+                'Build-Date': BuildDate,
+                'Specification-Version': SpecificationVersion,
+                'Specification-Vendor': vendor,
+                'Implementation-Title': group,
+                'Implementation-Version': etaImplementationVersion,
+                'Implementation-Vendor': vendor )
+}
+
+jar {
+	doFirst { println 'Creating TestCase jar file' }
+
+	manifest { 
+		attributes 'Specification-Title': 'Enterprise Transport API (ETA) TestCase Classes'
+		from sharedManifest 
+	}
+
+        destinationDir = file("Libs/")
+        baseName = 'testCase'
+}
+
+task cleanJar (type: Delete) {
+        delete "${jar.archivePath}"
+}
+clean.dependsOn cleanJar
+
+task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+}
+
+artifacts {
+        jar
+}
+

@@ -1,0 +1,16 @@
+# ignore build results
+#
+Libs/
+build/
+bin/
+
+# ignore local test config extension
+#
+local.properties
+keystore.jks
+
+# ignore eclipse project files
+#
+.settings/
+.classpath
+.project
