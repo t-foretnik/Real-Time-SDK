@@ -1,8 +1,10 @@
-##Log Excerpt
+## Log Excerpt
 
-When running [com.oraise.ChainConstituentDataTest#testChainConstituentDataNoLimitFail()](src/test/java/com/oraise/ChainConstituentDataTest.java) we can see the [premature removal](#item-is-removed-prematurely-here) of the handle that is _NOT_ triggered by the client code and finally the resulting [error](#handling-refreshmsg-fails). Log excerpt is broken down into sections and some parts are skipped:
+When running [com.oraise.ChainConstituentDataTest#testChainConstituentDataNoLimitFail()](src/test/java/com/oraise/ChainConstituentDataTest.java) we can see the [premature removal](#item-is-removed-prematurely-here) of the handle that is _NOT_ triggered by the client code and finally the resulting [error](#handling-refreshmsg-fails). Log excerpt is broken 
 
-###Regular startup, first snapshot and start of chain resolution
+down into sections and some parts are skipped:
+
+### Regular startup, first snapshot and start of chain resolution
 
 ```
 #
@@ -465,7 +467,11 @@ loggerMsgEnd
     Instance name Consumer_1_1
 loggerMsgEnd
 ```
-###Item is removed prematurely here
+
+### Item is removed prematurely here
+
+Item 10 is returned to pool, client is set to  _null_
+
 ```
  [c.r.ema.access.OmmConsumerImpl]
 12:27:09.807 [pool-2-thread-1] DEBUG - Registered client with handle [45] for async snapshot for identifier [/ZALG.DE] [com.oraise.TestBase]
@@ -476,7 +482,9 @@ loggerMsgEnd
     Instance name Consumer_1_1
 loggerMsgEnd
 ```
-###First snapshot results are handled properly
+
+### First snapshot results are handled properly
+
 ```
  [c.r.ema.access.OmmConsumerImpl]
 12:27:09.811 [pool-2-thread-1] DEBUG - [/BASFn.DE] Snapshot succeeded [com.oraise.client.SnapshotClient]
@@ -573,7 +581,8 @@ loggerMsgEnd
     Instance name Consumer_1_1
 loggerMsgEnd
 ```
-###Handling RefreshMsg fails
+
+### Handling RefreshMsg fails
 
 Item 10 /.CONG.DE has been removed
 

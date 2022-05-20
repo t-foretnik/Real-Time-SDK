@@ -48,3 +48,5 @@ The tests can be run from any IDE or by removing the exclusion from [build.gradl
 ## The tests are all successful, so what's the problem?
 
 The tests are written to prove the current faulty behavior and thus expect certain actions to fail. Assertions are made to prove that the exceptions occur and not that actions completed successfully 
+
+There is also a shortened [log](LOGEXCERPT.md) included to show the creation of the NullPointerException's cause
