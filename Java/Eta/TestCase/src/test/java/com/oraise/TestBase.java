@@ -156,10 +156,12 @@ public abstract class TestBase implements DataService {
         CompletableFuture<Snapshot> fSnapshot = new CompletableFuture<>();
         final long handle = ommConsumer.registerClient(ConfigUtility.createSnapshotRequest(identifier, serviceName),
                 new SnapshotClient(identifier, dataDictionary, fSnapshot));
+        LOGGER.debug("Registered client with handle [{}] for snapshot for identifier [{}]", handle, identifier);
 
         final Snapshot data;
         try {
             data = fSnapshot.get(TEST_CONFIG.snapshotTimeoutSeconds(), TimeUnit.SECONDS);
+            LOGGER.debug("Snapshot for [{}] finished successfully", identifier);
         } catch (ConfigurationException ce) {
             throw new SnapshotException("Snapshot timeout is not configured properly!");
         } catch (InterruptedException ie) {
@@ -168,7 +170,10 @@ public abstract class TestBase implements DataService {
         } catch (Exception ex) {
             throw new SnapshotException(ex);
         } finally {
+            LOGGER.debug("Snapshot for [{}] finished, unregistering handle [{}]", identifier, handle);
             ommConsumer.unregister(handle);
+            LOGGER.debug("Unregistered handle [{}] for snapshot for identifier [{}]", handle, identifier);
+
         }
         return data;
     }
@@ -179,9 +184,11 @@ public abstract class TestBase implements DataService {
         CompletableFuture<Snapshot> inner = new CompletableFuture<>();
         final long handle = ommConsumer.registerClient(ConfigUtility.createSnapshotRequest(identifier, serviceName),
                 new SnapshotClient(identifier, dataDictionary, inner));
+        LOGGER.debug("Registered client with handle [{}] for async snapshot for identifier [{}]", handle, identifier);
         inner.whenComplete((result, ex) -> {
-            LOGGER.debug("Async snapshot for [{}] finished", identifier);
+            LOGGER.debug("Async snapshot for [{}] finished, unregistering handle [{}]", identifier, handle);
             ommConsumer.unregister(handle);
+            LOGGER.debug("Unregistered handle [{}] for async snapshot for identifier [{}]", handle, identifier);
             if (!fSnapshot.isDone()) {
                 if (ex != null) {
                     fSnapshot.completeExceptionally(ex);
@@ -311,6 +318,7 @@ public abstract class TestBase implements DataService {
         assertNotNull(ommConsumer);
         assertNotNull(serviceName);
         final CompletableFuture<Set<String>> fChain = new CompletableFuture<>();
+        LOGGER.debug("Starting to resolve chain [{}]", chain);
         doResoleChain(chain, CHAIN_FIRST_PAGE + chain, new HashSet<>(), fChain);
         return fChain;
     }
@@ -363,6 +371,7 @@ public abstract class TestBase implements DataService {
         } else {
             // either we gathered all constituents or the field is simply not there
             // so the we can submit all the constituents we received so far
+            LOGGER.debug("Chain resolution for [{}] is done. [{}] constituent(s) found", chain, constituents.size());
             fChain.complete(constituents);
         }
     }

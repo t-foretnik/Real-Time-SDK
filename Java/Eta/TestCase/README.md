@@ -1,4 +1,4 @@
-# What's the purpose of this project?
+## What's the purpose of this project?
 
 This test cases should prove that unchecked exceptions are not handled properly and will break the thread executor main loop causing the OmmConsumer instance to be no longer functional.
 
@@ -11,7 +11,7 @@ The test sources contain a minimal implementation configuring an OmmConsumer ins
 - [com.oraise.FaultyClientTest](./src/test/java/com/oraise/FaultyClientTest.java) demonstrates how easy unchecked exceptions can break the thread executor main loop
 - [com.oraise.ChainConstituentDataTest](./src/test/java/com/oraise/ChainConstituentDataTest.java) shows that there are even internal reasons for unchecked exceptions breaking the thread executor main loop, so the issue is not limited to poorly implemented clients
 
-# Why are the tests disabled by default?
+## Why are the tests disabled by default?
 
 In order to run the tests user-specific configuration is required. A valid account to access the Refinitiv services and a Java keystore are required. Our own account settings are not included in the test code for obvious reasons.
 
@@ -41,10 +41,10 @@ snapshotTimeoutSeconds=5
 subscriptionTimeoutSeconds=5
 ```
 
-# How to use these test cases?
+## How to use these test cases?
 
 The tests can be run from any IDE or by removing the exclusion from [build.gradle](build.gradle). Make sure to provide the necessary configuration values in order to make the tests work.
 
-# The tests are all successful, so what's the fuzz?
+## The tests are all successful, so what's the problem?
 
 The tests are written to prove the current faulty behavior and thus expect certain actions to fail. Assertions are made to prove that the exceptions occur and not that actions completed successfully 

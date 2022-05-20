@@ -1,8 +1,10 @@
 package com.oraise;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.oraise.exception.SnapshotException;
 import com.oraise.model.Snapshot;
 
 /**
@@ -62,8 +65,8 @@ class ChainConstituentDataTest extends TestBase {
     @Test
     void testChainConstituentDataLimitedTo4Success() {
         try {
-            List<Snapshot> constituentsSnapshots = retrieveData(4).get(TEST_CONFIG.snapshotTimeoutSeconds() * 2,
-                    TimeUnit.SECONDS);
+            List<Snapshot> constituentsSnapshots = getSnapshotsForChainConstituents(CHAIN_GDAXI_DELAYED, 4)
+                    .get(TEST_CONFIG.snapshotTimeoutSeconds() * 2, TimeUnit.SECONDS);
             assertNotNull(constituentsSnapshots);
             assertFalse(constituentsSnapshots.isEmpty());
             constituentsSnapshots.forEach(snapshot -> {
@@ -83,20 +86,41 @@ class ChainConstituentDataTest extends TestBase {
 
     @Test
     void testChainConstituentDataNoLimitFail() {
-        assertThrows(TimeoutException.class,
-                () -> retrieveData(0).get(TEST_CONFIG.snapshotTimeoutSeconds() * 2, TimeUnit.SECONDS));
+
+        // retrieve a snapshot to show that ommConsumer is functional
+        final Snapshot snapshot;
+        try {
+            snapshot = getSnapshot(CONTINENTAL_DELAYED);
+        } catch (SnapshotException se) {
+            fail(se.getMessage());
+            return;
+        }
+
+        assertNotNull(snapshot);
+        assertTrue(snapshot.success());
+        assertEquals(CONTINENTAL_DELAYED, snapshot.identifier());
+        assertNotNull(snapshot.data());
+        assertFalse(snapshot.data().isEmpty());
+
+        LOGGER.debug("Received data for [{}]: {}", snapshot.identifier(), snapshot.data());
+
+        // retrieve snapshots for chain to provoke exception an break the main loop
+        assertThrows(TimeoutException.class, () -> getSnapshotsForChainConstituents(CHAIN_GDAXI_DELAYED, 0)
+                .get(TEST_CONFIG.snapshotTimeoutSeconds() * 2, TimeUnit.SECONDS));
+
+        // ommConsumer is no longer functional snapshot will fail
+        assertThrows(SnapshotException.class, () -> getSnapshot(CONTINENTAL_DELAYED));
 
     }
 
-    private CompletableFuture<List<Snapshot>> retrieveData(int limit) {
+    private CompletableFuture<List<Snapshot>> getSnapshotsForChainConstituents(String chain, int limit) {
         CompletableFuture<List<Snapshot>> fConstituentData = new CompletableFuture<>();
 
-        resolveChainAsync(CHAIN_GDAXI_DELAYED).whenComplete((constituents, error) -> {
+        resolveChainAsync(chain).whenComplete((constituents, error) -> {
             if (error != null) {
                 fConstituentData.completeExceptionally(error);
             } else {
-                LOGGER.debug("Resolved {} constituent(s) for chain [{}]: {}", constituents.size(), CHAIN_GDAXI_DELAYED,
-                        constituents);
+                LOGGER.debug("Resolved {} constituent(s) for chain [{}]: {}", constituents.size(), chain, constituents);
                 Map<String, CompletableFuture<Snapshot>> fSnapshots = new HashMap<>();
                 for (String constituent : constituents) {
                     fSnapshots.put(constituent, getSnapshotAsync(constituent));
